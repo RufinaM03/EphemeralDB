@@ -159,6 +159,9 @@ class SQLiteBackend:
             path = self.root / f"checkpoint-{uuid.uuid4().hex}.db"
             try:
                 with self.engine.connection_manager.connection_for(TenantId(tenant)) as source:
+                    committer = self.engine.wal_committer
+                    assert isinstance(committer, FencedCommitter)
+                    committer.require_ready(tenant, source)
                     with closing(sqlite3.connect(path)) as target:
                         source.backup(target)
                 body = path.read_bytes()
@@ -376,9 +379,18 @@ class AuroraBackend:
             "error_code": error,
             "conflict": error == "TRANSACTION_CONFLICT",
             "evidence_scope": "postgresql",
-            "durability_outcome": "POSTGRES_COMMITTED"
-            if success and payload.get("transaction_id")
-            else "READ",
+            "durability_outcome": (
+                "READ"
+                if not payload.get("transaction_id")
+                else "POSTGRES_COMMITTED"
+                if success
+                else "REJECTED"
+                if error == "TRANSACTION_CONFLICT"
+                else "UNKNOWN"
+            ),
+            "reconciliation_required": bool(payload.get("transaction_id"))
+            and not success
+            and error != "TRANSACTION_CONFLICT",
             "transaction_id": payload.get("transaction_id"),
         }
 

@@ -51,7 +51,8 @@ The Turso-inspired path is expected to use database compute pods on Amazon EKS, 
 
 ## Current Status
 
-Phase 7 - consistent full-database checkpoints, immutable S3 Standard publication,
+Core Phases 0–8 and the console extension are implemented. Phase 7 added
+consistent full-database checkpoints, immutable S3 Standard publication,
 and bounded checkpoint-to-WAL recovery with a real process-kill/cache-loss proof.
 See [the Phase 7 report](docs/phase-7-report.md), [checkpoint contracts](docs/checkpointing.md),
 and [recovery demo](docs/recovery-demo.md). Phase 6 stabilization remains the
@@ -174,7 +175,7 @@ python -m ephemeraldb.engine.reconcile --dataset-dir ./generated --tenant <tenan
 
 Use `--wal-persistence-mode batch` for batched history. Reconciliation never
 resubmits WAL; missing positive evidence remains blocked. S3 Express is single-AZ;
-arbitrary unsealed cache-loss recovery and distributed fencing are not implemented.
+legacy payload-only mode does not support arbitrary unsealed cache-loss recovery or distributed fencing.
 For the implemented sealed-run recovery path, see the Phase 7 demo above.
 
 Compare single-record and batched S3 Express WAL persistence:

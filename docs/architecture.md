@@ -161,12 +161,13 @@ generate backend-independent workload artifacts, execute workloads against local
 tenant DB files, emit explicit local logical WAL records for development,
 persist one WAL object per transaction or one cross-tenant batch object to S3
 Express One Zone, validate WAL chains, and replay single-record WAL files into
-compatible regenerated tenant databases. It does not create Kubernetes
-resources, Terraform modules, Aurora connections, Docker images,
-routing, distributed recovery, ownership coordination, or production traffic
-execution.
+compatible regenerated tenant databases. The console extension adds rate-controlled
+execution, a PostgreSQL/Aurora adapter, Docker packaging, Terraform/EKS definitions,
+fixed tenant routing, and S3 fenced checkpoint/restart recovery integration.
+See [the console runbook](console.md) for its operational contracts.
 
-Complete cache loss is demonstrated only for exclusive sealed runs with available
-remote data. It is not distributed recovery orchestration or permanent AZ-loss
-protection. The offline proof uses external filesystem authorities and never
-claims AWS durability/performance from those results.
+Legacy payload-only recovery retains its exclusive sealed-run boundary. Phase 8
+fenced recovery also demonstrates unsealed process/cache loss using offline authority
+and payload adapters. The console's cloud integration is not yet live AWS recovery
+evidence, background distributed failure detection, elastic tenant rebalancing, or
+permanent AZ-loss protection. Local results never establish AWS performance.

@@ -8,7 +8,7 @@ Implemented on 2026-10-22. This tracks code and validation, not deployed AWS cap
 | Flutter UI | Overview, database explorer, transaction inspector, traffic lab, failure lab, comparisons and exports | Flutter analysis and release build; browser inspection |
 | Traffic | Deterministic profiles, rate-controlled bounded admission, warm-up separation, overload records and latency groups | Real local single/batch runs and accounting tests |
 | Cloud adapters | Fenced S3 commits/checkpoints/restart recovery; pooled PostgreSQL adapter | Both WAL modes tested over fake S3 transports; real PostgreSQL parity |
-| Deployment | Dockerfile, EKS StatefulSet, NVMe initialization, scoped IRSA, Terraform network/storage/EKS/optional Aurora | Terraform formatting passes; provider download blocked full validation; Docker daemon unavailable |
+| Deployment | Dockerfile, EKS StatefulSet, NVMe initialization, scoped IRSA, Terraform network/storage/EKS/optional Aurora | Terraform formatting and full provider validation pass in GitHub Actions; Docker daemon unavailable locally |
 | Failures | Isolated crash/cache-loss/ACK-loss/stale-owner jobs; allowlisted FIS start/status/stop | Local cache-loss job completed with zero observed acknowledged loss; no live AWS FIS run |
 
 Settled local quality checks: **209 tests passed, 10 skipped**, Ruff passed, strict mypy
@@ -18,8 +18,14 @@ PostgreSQL 17 instance. Eight AWS tests and two scale tests remained gated.
 
 No EKS/Aurora infrastructure was provisioned. The intended `ephemeraldb-dev` AWS
 session was expired, and cloud bucket names were not configured. Terraform AWS
-provider installation was interrupted by the host network; full provider validation
-is included in GitHub Actions. Docker is installed but its daemon was not running.
+provider installation was interrupted locally, but full provider validation subsequently
+passed in [GitHub Actions](https://github.com/RufinaM03/EphemeralDB/actions/runs/39765315496).
+Python and Flutter CI jobs also passed. Docker is installed but its daemon was not running.
+
+Browser verification launched a 30-operation experiment from the Flutter form and
+confirmed completion. The comparisons screen correctly identified matching dataset
+and workload checksums for the retained single/batch baseline runs. Dashboard and
+comparison screenshots are retained under `docs/images/`.
 
 Not yet established: live S3 recovery evidence, EKS interruption/recovery behavior,
 Aurora scaling/performance, background distributed failure detection, elastic tenant

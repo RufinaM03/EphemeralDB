@@ -212,3 +212,25 @@ def test_console_subprocess_admission_cancel_and_persistence(
     assert state["status"] == "cancelled", state
     reopened = TestClient(create_app(tmp_path))
     assert reopened.get("/api/runs").json()[0]["status"] == "cancelled"
+
+
+def test_postgres_commit_response_loss_remains_unknown(monkeypatch: Any) -> None:
+    from contextlib import contextmanager
+
+    from ephemeraldb.console.backends import AuroraBackend
+    from ephemeraldb.recovery.demo import operation
+
+    class LostCommitResponse:
+        @contextmanager
+        def connection(self):
+            yield object()
+            raise TimeoutError("connection lost while returning commit acknowledgement")
+
+    backend = object.__new__(AuroraBackend)
+    backend.pool = LostCommitResponse()
+    monkeypatch.setattr(backend, "_write", lambda *_args: (False, 5))
+    result = backend.execute(operation(0, 1))
+    assert result["success"] is False
+    assert result["durability_outcome"] == "UNKNOWN"
+    assert result["reconciliation_required"] is True
+    assert result["transaction_id"] is not None
