@@ -1,0 +1,20 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="EPHEMERALDB"
+
+--EPHEMERALDB
+Content-Type: text/x-shellscript; charset="us-ascii"
+
+#!/bin/bash
+set -euo pipefail
+# Only an EC2 instance-store disk may be formatted. Never select an EBS/root device.
+device=$(lsblk -dn -o NAME,MODEL | awk '$0 ~ /Amazon EC2 NVMe Instance Storage/ {print "/dev/"$1; exit}')
+if [ -z "$device" ]; then
+  echo "No EC2 NVMe instance-store device found; runtime must not use a root-disk fallback" >&2
+  exit 1
+fi
+if ! blkid "$device"; then mkfs.ext4 "$device"; fi
+mkdir -p /mnt/ephemeraldb
+mount "$device" /mnt/ephemeraldb
+chown 10001:10001 /mnt/ephemeraldb
+chmod 0700 /mnt/ephemeraldb
+--EPHEMERALDB--

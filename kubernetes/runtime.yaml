@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ephemeraldb
+  labels:
+    app.kubernetes.io/part-of: ephemeraldb
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: runtime
+  namespace: ephemeraldb
+  annotations:
+    eks.amazonaws.com/role-arn: REPLACE_RUNTIME_ROLE_ARN
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: runtime-config
+  namespace: ephemeraldb
+data:
+  AWS_REGION: ap-south-1
+  S3_EXPRESS_BUCKET: REPLACE_DIRECTORY_BUCKET
+  S3_CHECKPOINT_BUCKET: REPLACE_CHECKPOINT_BUCKET
+  S3_EXPRESS_PREFIX: wal
+  S3_CHECKPOINT_PREFIX: checkpoints
+  ENABLE_AWS_EXECUTION: '1'
+  CONSOLE_HOST: 0.0.0.0
+  CONSOLE_DATA_DIR: /data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: runtime
+  namespace: ephemeraldb
+spec:
+  clusterIP: None
+  selector:
+    app: ephemeraldb-runtime
+  ports:
+    - name: http
+      port: 8765
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: runtime
+  namespace: ephemeraldb
+spec:
+  serviceName: runtime
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ephemeraldb-runtime
+  template:
+    metadata:
+      labels:
+        app: ephemeraldb-runtime
+    spec:
+      serviceAccountName: runtime
+      nodeSelector:
+        ephemeraldb/storage: nvme
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      terminationGracePeriodSeconds: 60
+      initContainers:
+        - name: cache-directory
+          image: REPLACE_ECR_IMAGE_WITH_IMMUTABLE_TAG
+          command: [python, -c, "import os; os.makedirs('/cache/' + os.environ['POD_NAME'], exist_ok=True)"]
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      containers:
+        - name: runtime
+          image: REPLACE_ECR_IMAGE_WITH_IMMUTABLE_TAG
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8765
+          envFrom:
+            - configMapRef:
+                name: runtime-config
+            - secretRef:
+                name: runtime-secrets
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: cache
+              mountPath: /data
+              subPathExpr: $(POD_NAME)
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: '500m'
+              memory: 512Mi
+            limits:
+              cpu: '2'
+              memory: 2Gi
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8765
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8765
+            initialDelaySeconds: 15
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: cache
+          hostPath:
+            path: /mnt/ephemeraldb
+            type: Directory
+        - name: tmp
+          emptyDir: {}

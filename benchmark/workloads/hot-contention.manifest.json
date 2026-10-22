@@ -1,0 +1,140 @@
+{
+  "dataset": {
+    "dataset_seed": 42,
+    "entities_per_tenant": 100,
+    "initial_versions_per_entity": 1,
+    "metadata_entries_per_entity": 3,
+    "seed": 42,
+    "tenant_count": 3,
+    "tenant_ids": [
+      "ee24aa41-1950-5b71-89da-fb3e6b5a46b0",
+      "79302fb2-3278-54ab-9380-260471e7352f",
+      "46c020a8-3103-5f3b-8618-7349df3348d1"
+    ]
+  },
+  "dataset_manifest_checksum": "f0cb3a0ae7c4a82cbdfbe36f097cf075239781eca5e49dfba3ada95d95ab744b",
+  "dataset_seed": 42,
+  "duration_seconds": 50,
+  "hot_set": {
+    "hot_entity_ids_by_tenant": {
+      "ee24aa41-1950-5b71-89da-fb3e6b5a46b0": [
+        "62f516a4-50a5-5359-b0b3-82876e2cfe4c"
+      ]
+    },
+    "hot_tenant_ids": [
+      "ee24aa41-1950-5b71-89da-fb3e6b5a46b0"
+    ]
+  },
+  "operation_count": 1700,
+  "operation_type_counts": {
+    "AGGREGATE_BY_STATE": 29,
+    "COMPLEX_JOIN": 71,
+    "ENTITY_DELTA": 1078,
+    "ENTITY_HISTORY": 51,
+    "ENTITY_LOOKUP": 158,
+    "METADATA_LOOKUP": 50,
+    "MULTI_ENTITY_TRANSACTION": 106,
+    "RELATIONSHIP_EXPANSION": 82,
+    "STATE_SCAN": 75
+  },
+  "profile": {
+    "conflict_probability": 0.35,
+    "duration_seconds": 60,
+    "expected_version_probability": 0.9,
+    "hot_entity_fraction": 0.01,
+    "hot_entity_write_probability": 0.9,
+    "hot_tenant_fraction": 0.1,
+    "multi_entity_max_items": 5,
+    "multi_entity_min_items": 2,
+    "multi_entity_transaction_probability": 0.1,
+    "name": "HOT_CONTENTION",
+    "operation_weights": [
+      {
+        "operation_type": "ENTITY_LOOKUP",
+        "weight": 0.105
+      },
+      {
+        "operation_type": "STATE_SCAN",
+        "weight": 0.045
+      },
+      {
+        "operation_type": "RELATIONSHIP_EXPANSION",
+        "weight": 0.045
+      },
+      {
+        "operation_type": "METADATA_LOOKUP",
+        "weight": 0.03
+      },
+      {
+        "operation_type": "ENTITY_HISTORY",
+        "weight": 0.03
+      },
+      {
+        "operation_type": "COMPLEX_JOIN",
+        "weight": 0.03
+      },
+      {
+        "operation_type": "AGGREGATE_BY_STATE",
+        "weight": 0.015
+      },
+      {
+        "operation_type": "ENTITY_DELTA",
+        "weight": 0.63
+      },
+      {
+        "operation_type": "MULTI_ENTITY_TRANSACTION",
+        "weight": 0.07
+      }
+    ],
+    "read_write_mix": {
+      "read": 0.3,
+      "write": 0.7
+    },
+    "seed": 42,
+    "target_operations_per_second": 100,
+    "tenant_distribution": "HOT_SET",
+    "virtual_client_count": 50
+  },
+  "profile_name": "HOT_CONTENTION",
+  "read_count": 516,
+  "schedule": {
+    "duration_seconds": 50,
+    "name": "SMALL_DEV",
+    "peak_rate": 50,
+    "segments": [
+      {
+        "duration_seconds": 10,
+        "end_rate": 10,
+        "name": "warmup",
+        "operation_count": 100,
+        "phase": "WARMUP",
+        "shape": "CONSTANT",
+        "start_rate": 10
+      },
+      {
+        "duration_seconds": 30,
+        "end_rate": 50,
+        "name": "measurement",
+        "operation_count": 1500,
+        "phase": "MEASUREMENT",
+        "shape": "CONSTANT",
+        "start_rate": 50
+      },
+      {
+        "duration_seconds": 10,
+        "end_rate": 10,
+        "name": "cooldown",
+        "operation_count": 100,
+        "phase": "COOLDOWN",
+        "shape": "COOLDOWN",
+        "start_rate": 10
+      }
+    ]
+  },
+  "seed": 42,
+  "tenant_distribution": "HOT_SET",
+  "virtual_client_count": 50,
+  "workload_checksum": "dfb66715b7f358ab42c00da8a00eafbd7a8534087164bedb7ba391a44c2195e6",
+  "workload_schema_version": 1,
+  "write_count": 1184
+}

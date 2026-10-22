@@ -1,0 +1,7 @@
+region = "ap-south-1"
+project = "ephemeraldb"
+wal_az_id = "REPLACE_WITH_SUPPORTED_AZ_ID"
+kubernetes_version = "REPLACE_WITH_CURRENT_STANDARD_SUPPORTED_VERSION"
+admin_principal_arn = "arn:aws:iam::123456789012:role/REPLACE_WITH_ADMIN_ROLE"
+admin_cidrs = ["203.0.113.1/32"]
+enable_aurora = false
